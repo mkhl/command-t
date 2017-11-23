@@ -7,7 +7,13 @@ module CommandT
         end
 
         def paths
-          try_paths
+          @scanners.each do |scanner|
+            begin
+              return scanner.paths
+            rescue RuntimeError, Errno::ENOENT
+              next
+            end
+          end
         end
 
         def path=(path)
@@ -20,16 +26,6 @@ module CommandT
           @scanners.each do |scanner|
             scanner.flush
           end
-        end
-
-      private
-
-        def try_paths(enum = @scanners.to_enum)
-          enum.next.paths
-        rescue RuntimeError, Errno::ENOENT
-          try_paths(enum)
-        rescue StopIteration
-          raise RuntimeError, 'No scanners left'
         end
       end
     end
